@@ -1,17 +1,20 @@
-import { take, put, fork, call, apply } from "redux-saga/effects";
-import fetch from "isomorphic-fetch";
-import { SET_CART_ITEMS, setItemDetails } from "../actions";
+import { take, fork, put } from 'redux-saga/effects'
+import fetch from 'isomorphic-fetch';
 
-export function* itemDetailsSaga() {
-  let { items } = yield take(SET_CART_ITEMS);
-  console.log(items);
-  yield items.map((item) => fork(loadItem, item.id));
+import {
+    SET_CART_ITEMS,
+    setItemDetails
+} from './../actions';
+
+export function* loadItemDetails(item) {
+    console.info("Item?",item);
+    const { id } = item;
+    const response = yield fetch(`http://localhost:8081/items/${id}`);
+    const data = yield response.json();
+    const info = data[0];
+    yield put(setItemDetails(info));
 }
-
-function* loadItem(id) {
-  console.info("item loading:", id);
-  const response = yield call(fetch, `http://localhost:8081/items/${id}`);
-  const data = yield apply(response, response.json);
-  yield put(setItemDetails(data[0]));
-  console.info("item loaded:", id);
+export function* itemDetailsSaga() {
+    const { items } = yield take(SET_CART_ITEMS);
+    yield items.map(item=>fork(loadItemDetails,item));
 }

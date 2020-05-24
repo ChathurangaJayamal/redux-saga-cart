@@ -1,12 +1,16 @@
-import { take, call, apply, put } from "redux-saga/effects";
-import fetch from "isomorphic-fetch";
-import { setCartItems, SET_CURRENT_USER } from "../actions";
+import { take, put } from 'redux-saga/effects'
+import fetch from 'isomorphic-fetch';
 
-export function* fetchCartSaga() {
-  const { user } = yield take(SET_CURRENT_USER); //wait for some thread to update current user
+import {
+    SET_CURRENT_USER,
+    setCartItems
+} from './../actions';
 
-  const response = yield call(fetch, `http://localhost:8081/cart/${user.id}`);
-  const data = yield apply(response, response.json);
-  console.log(data);
-  yield put(setCartItems(data.items));
+export function* fetchCartSaga(){
+    const { user } = yield take(SET_CURRENT_USER);
+    const { id } = user;
+    const response = yield fetch(`http://localhost:8081/cart/${id}`);
+    const { items } = yield response.json();
+    yield put(setCartItems(items));
+    console.info("Set cart items,",items);
 }
